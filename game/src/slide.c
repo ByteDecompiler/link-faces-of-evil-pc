@@ -1,0 +1,45 @@
+#include "game.h"
+
+void slide(long dx, long wall_flag)
+{
+    long i;
+
+    for (i = 0; i < 2; ++i) {
+        get_sprite_block(link_x + dx, link_y, &jump_info);
+        if (jump_info.floor || jump_info.climb_a || jump_info.climb_b || jump_info.deadly || jump_info.track || *(long *)wall_flag)
+            set_link_position(dx);
+        else {
+            get_sprite_block(link_x + dx, link_y + 1, &jump_info);
+            if (jump_info.floor || jump_info.climb_a || jump_info.climb_b || jump_info.deadly || jump_info.track || *(long *)wall_flag) {
+                set_link_position(dx);
+                ++link_y;
+                ++link_screen_y;
+                ++link_sprite_y;
+            } else {
+                get_sprite_block(link_x, link_y + 1, &jump_info);
+                if (*(long *)wall_flag) {
+                    ++link_y;
+                    ++link_screen_y;
+                    ++link_sprite_y;
+                } else {
+                    set_link_position(dx);
+                    ++link_y;
+                    ++link_screen_y;
+                    ++link_sprite_y;
+                }
+            }
+        }
+        link_anim_step = 0;
+        if (jump_info.floor || jump_info.track
+                || jump_info.climb_a && (old_get_sprite_block(link_x, link_y + 1) != 48
+                                    || old_get_sprite_block(link_x, link_y - 1) != 48)
+                || jump_info.climb_b && (old_get_sprite_block(link_x, link_y + 1) != 25
+                                    || old_get_sprite_block(link_x, link_y - 1) != 25)) {
+            if (!link_thrusting) {
+                go_find_hero_action(0);
+                anim_frame_idx = 0;
+            }
+            break;
+        }
+    }
+}
